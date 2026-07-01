@@ -383,6 +383,7 @@ class PseudoAtomDFT:
     def export_eigenvalues(
         self, eigenvalues: dict[str, list[float]], out_dir: str, lmax: int, nmax: int
     ):
+        """Write a basis-set-tagged file listing the (l, n) eigenvalues in Hartree."""
         elem = self.element
         basis_tag = self._build_basis_tag(lmax, nmax, include_confinement=False)
         file_eigenvalues = os.path.join(out_dir, f"{elem}_{basis_tag}_eigenvalues.dat")
