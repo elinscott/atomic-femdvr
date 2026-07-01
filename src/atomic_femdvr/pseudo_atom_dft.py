@@ -351,10 +351,41 @@ class PseudoAtomDFT:
         return energy_shifts, eigenvalues_all, psi_all
 
     # .......................................................
-    def export_eigenvalues(self, eigenvalues: dict[str, list[float]], out_dir: str):
-        """Write a flat ``l n eps`` text table of eigenvalues to ``{element}_eigenvalues.dat``."""
+    def _build_basis_tag(
+        self,
+        lmax: int,
+        nmax: int,
+        confinement: ConfinementInput | None = None,
+        include_confinement: bool = True,
+    ) -> str:
+        # following quantum chemistry conventions: SZ, DZP, TZPP, etc.
+        prefs = ["S", "D", "T", "Q", "H"]
+        zeta_tag = f"{prefs[nmax]}Z" if nmax < len(prefs) else f"{nmax}Z"
+
+        if self.upf is None:
+            raise RuntimeError("read_upf() must be called before building a basis tag.")
+        lmax_upf = np.amax(self.upf.lchi)
+        extra_l = lmax - lmax_upf
+        p_tag = "P" * extra_l if extra_l > 0 else ""
+
+        tag = zeta_tag + p_tag
+
+        if (
+            include_confinement
+            and confinement is not None
+            and confinement.type != ConfinementType.NONE
+        ):
+            tag += f"_rc{confinement.rc}"
+
+        return tag
+
+    # .......................................................
+    def export_eigenvalues(
+        self, eigenvalues: dict[str, list[float]], out_dir: str, lmax: int, nmax: int
+    ):
         elem = self.element
-        file_eigenvalues = os.path.join(out_dir, f"{elem}_eigenvalues.dat")
+        basis_tag = self._build_basis_tag(lmax, nmax, include_confinement=False)
+        file_eigenvalues = os.path.join(out_dir, f"{elem}_{basis_tag}_eigenvalues.dat")
 
         with open(file_eigenvalues, "w") as f:
             f.write("# l  n  eigenvalue (Hartree)\n")
