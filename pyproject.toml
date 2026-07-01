@@ -71,8 +71,12 @@ dependencies = [
 
 # see https://peps.python.org/pep-0735/ and https://docs.astral.sh/uv/concepts/dependencies/#dependency-groups
 [dependency-groups]
+# Note: deliberately does NOT include the "pylibxc" group. That group builds
+# libxc from source (a long compile), and no test exercises the "pylibxc" XC
+# driver -- pylibxc is imported lazily only when driver="pylibxc" is selected.
+# To test that code path, install the "pylibxc" extra (prebuilt via conda-forge)
+# and run the libxc-marked tests.
 tests = [
-    { include-group = "pylibxc" },
     "pytest",
     "pytest-console-scripts",
     "pytest-regressions[num]",
